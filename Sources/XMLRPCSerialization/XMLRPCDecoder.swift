@@ -233,7 +233,7 @@ final class _XMLRPCKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContainerP
         )
     }
     
-    var allKeys: [K] { return try! decoder.storage.assertIsObject(context: codingPath).keys.flatMap{ Key(stringValue: $0) } }
+    var allKeys: [K] { return try! decoder.storage.assertIsObject(context: codingPath).keys.compactMap{ Key(stringValue: $0) } }
     
     func contains(_ key: K) -> Bool {
         return try! decoder.storage.assertIsObject(context: codingPath)[key.stringValue] != nil

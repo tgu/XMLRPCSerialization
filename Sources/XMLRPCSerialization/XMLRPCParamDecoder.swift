@@ -26,7 +26,7 @@ open class XMLRPCParamDecoder {
             throw XMLRPCSerialization.SerializationError.noValueElement
         }
         guard element.childCount == 1, let child = element.child(at: 0), let childElement = child as? XMLElement else {
-            throw XMLRPCSerialization.SerializationError.badValueChildren
+            return element.stringValue ?? ""
         }
         return try decodeType(childElement)
     }
