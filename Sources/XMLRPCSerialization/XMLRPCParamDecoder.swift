@@ -111,13 +111,14 @@ open class XMLRPCParamDecoder {
                     throw XMLRPCSerialization.SerializationError.badDataElement
                 }
                 for child in dataElement.children ?? [] {
-                    guard let childElement = child as? XMLElement,
-                          let cname = childElement.name,
-                          cname == "value"
-                    else {
+                    switch child {
+                    case let childElement as XMLElement where childElement.name == "value":
+                        items.append(try decodeValue(childElement))
+                    case let childNode as XMLNode:
+                        items.append("")
+                    default:
                         throw XMLRPCSerialization.SerializationError.badDataElement
                     }
-                    items.append(try decodeValue(childElement))
                 }
                 return items
             default:
