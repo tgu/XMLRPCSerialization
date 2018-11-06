@@ -20,28 +20,41 @@ open class XMLRPCParamDecoder {
         }
         return try decodeValue(childElement)
     }
-    
+
     internal func decodeValue(_ element: XMLElement) throws -> Any {
         guard let name = element.name, name == "value" else {
             throw XMLRPCSerialization.SerializationError.noValueElement
         }
+
         guard element.childCount == 1, let child = element.child(at: 0), let childElement = child as? XMLElement else {
-            return element.stringValue ?? ""
+          #if os(Linux)
+          // swift 4.1.2 foundation library bug?
+          if element.description == "<value></value>" {
+            return ""
+          }
+          #endif
+          return element.stringValue ?? ""
         }
+
         return try decodeType(childElement)
     }
-    
+
     private func decodeType(_ element: XMLElement) throws -> Any {
         guard let type = element.name else {
             throw XMLRPCSerialization.SerializationError.badValueChildren
         }
-        
+
         switch type.lowercased() {
             case "string":
-                return element.stringValue ?? ""
+              #if os(Linux)
+              // Swift 4.1 bug on Linux???
+              if element.childCount == 0 {
+                return ""
+              }
+              #endif
+              return element.stringValue ?? ""
             case "int", "i4":
                 let raw = element.stringValue ?? ""
-            
                 if let uint = UInt(raw) {
                     return uint
                 } else if let int = Int(raw) {
@@ -74,7 +87,7 @@ open class XMLRPCParamDecoder {
                 return double
             case "struct":
                 var members: [String: Any] = [:]
-                
+
                 for child in element.children ?? [] {
                     guard let memberElement = child as? XMLElement,
                           let nameElement = memberElement.child(at: 0) as? XMLElement,
@@ -87,13 +100,13 @@ open class XMLRPCParamDecoder {
                     else {
                         throw XMLRPCSerialization.SerializationError.badMemberElement
                     }
-                    
+
                     members[name] = try decodeValue(valueElement)
                 }
                 return members
             case "array":
                 var items: [Any] = []
-            
+
                 guard element.childCount == 1, let dataElement = element.child(at: 0) as? XMLElement else {
                     throw XMLRPCSerialization.SerializationError.badDataElement
                 }
