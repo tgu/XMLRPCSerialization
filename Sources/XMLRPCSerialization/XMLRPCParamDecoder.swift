@@ -48,7 +48,7 @@ open class XMLRPCParamDecoder {
             case "string":
               #if os(Linux)
               // Swift 4.1 bug on Linux???
-              if element.childCount == 0 {
+              if element.description == "<string></string>" {
                 return ""
               }
               #endif
